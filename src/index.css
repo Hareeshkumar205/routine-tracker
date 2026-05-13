@@ -125,13 +125,19 @@ h1 {
 
 /* Layout */
 .app-container {
-  max-width: 600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px 16px;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    width: 80%;
+  }
 }
 
 .header {
@@ -503,8 +509,10 @@ h1 {
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
+  max-width: 1400px;
   display: flex;
   justify-content: space-around;
   padding: 12px 0;
@@ -512,6 +520,14 @@ h1 {
   border: 1px solid var(--glass-border);
   border-bottom: none;
   z-index: 100;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    width: 80%;
+  }
 }
 
 .nav-item {
