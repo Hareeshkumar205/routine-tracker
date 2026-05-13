@@ -432,3 +432,162 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  border-radius: 24px 24px 0 0;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  z-index: 100;
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.nav-item span {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.nav-item.active {
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+/* Weekend Log */
+.weekend-header {
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.weekend-header p {
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+/* Reports */
+.reports-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.report-card {
+  padding: 24px;
+  text-align: center;
+}
+.report-card h3 {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
+}
+
+/* Circular Progress */
+.circular-progress {
+  width: 150px;
+  margin: 0 auto;
+}
+.circular-chart {
+  display: block;
+  margin: 10px auto;
+  max-width: 80%;
+  max-height: 250px;
+}
+.circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 3.8;
+}
+.circle {
+  fill: none;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke: var(--primary);
+  transition: stroke-dasharray 1s ease-out;
+}
+.percentage {
+  fill: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.5em;
+  text-anchor: middle;
+}
+
+.weekend-stat-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+}
+.huge-number {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--success);
+  text-shadow: 0 0 20px var(--success-glow);
+}
+.stat-label {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* Bar Chart */
+.bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  padding: 0 10px;
+}
+.bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.bar-bg {
+  width: 16px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.bar-fill {
+  width: 100%;
+  background: var(--primary);
+  border-radius: 8px;
+  transition: height 1s ease-out;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+.weekend-fill {
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success-glow);
+}
+.bar-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}

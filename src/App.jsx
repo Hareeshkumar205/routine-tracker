@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import RoutineList from './components/RoutineList';
 import WorkTimer from './components/WorkTimer';
+import Navigation from './components/Navigation';
+import WeekendLog from './components/WeekendLog';
+import Reports from './components/Reports';
 import { Activity } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isWeekend as checkIsWeekend } from 'date-fns';
 
 function App() {
   const [completions, setCompletions] = useState({});
   const [actualActivities, setActualActivities] = useState({});
   const [currentTimeStr, setCurrentTimeStr] = useState('');
+  const [currentTab, setCurrentTab] = useState('home');
+
+  const isWeekend = checkIsWeekend(new Date());
 
   // Load today's data
   useEffect(() => {
+    if (isWeekend) return;
+    
     const today = format(new Date(), 'yyyy-MM-dd');
     const savedCompletions = localStorage.getItem(`routine-logs-${today}`);
     const savedActuals = localStorage.getItem(`routine-actuals-${today}`);
@@ -21,16 +29,18 @@ function App() {
     if (savedActuals) {
       try { setActualActivities(JSON.parse(savedActuals)); } catch (e) {}
     }
-  }, []);
+  }, [isWeekend]);
 
   // Save data and update current time
   useEffect(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    if (Object.keys(completions).length > 0) {
-      localStorage.setItem(`routine-logs-${today}`, JSON.stringify(completions));
-    }
-    if (Object.keys(actualActivities).length > 0) {
-      localStorage.setItem(`routine-actuals-${today}`, JSON.stringify(actualActivities));
+    if (!isWeekend) {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      if (Object.keys(completions).length > 0) {
+        localStorage.setItem(`routine-logs-${today}`, JSON.stringify(completions));
+      }
+      if (Object.keys(actualActivities).length > 0) {
+        localStorage.setItem(`routine-actuals-${today}`, JSON.stringify(actualActivities));
+      }
     }
 
     const updateTime = () => {
@@ -40,7 +50,7 @@ function App() {
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
-  }, [completions, actualActivities]);
+  }, [completions, actualActivities, isWeekend]);
 
   const toggleCompletion = (id) => {
     setCompletions(prev => ({
@@ -65,25 +75,37 @@ function App() {
         </div>
       </header>
       
-      <main className="main-content">
-        <div className="top-section">
-          <WorkTimer />
-        </div>
+      <main className="main-content" style={{ paddingBottom: '90px' }}>
+        {currentTab === 'home' && (
+          isWeekend ? (
+            <WeekendLog />
+          ) : (
+            <>
+              <div className="top-section">
+                <WorkTimer />
+              </div>
+              
+              <div className="table-section animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <div className="section-header">
+                  <h2 className="section-title">Schedule</h2>
+                  <span className="current-date">{format(new Date(), 'EEEE, MMMM d')}</span>
+                </div>
+                <RoutineList 
+                  completions={completions} 
+                  actualActivities={actualActivities}
+                  toggleCompletion={toggleCompletion} 
+                  updateActualActivity={updateActualActivity}
+                  currentTimeStr={currentTimeStr} 
+                />
+              </div>
+            </>
+          )
+        )}
         
-        <div className="table-section animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <div className="section-header">
-            <h2 className="section-title">Schedule</h2>
-            <span className="current-date">{format(new Date(), 'EEEE, MMMM d')}</span>
-          </div>
-          <RoutineList 
-            completions={completions} 
-            actualActivities={actualActivities}
-            toggleCompletion={toggleCompletion} 
-            updateActualActivity={updateActualActivity}
-            currentTimeStr={currentTimeStr} 
-          />
-        </div>
+        {currentTab === 'reports' && <Reports />}
       </main>
+
+      <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
     </div>
   );
 }
