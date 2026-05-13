@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Trash2, Plus, Edit2, Check, Download, Upload } from 'lucide-react';
+import { Trash2, Plus, Edit2, Check, Download, Upload, MonitorSmartphone, X } from 'lucide-react';
 
 export default function RoutineEditor({ 
   customRoutine, 
@@ -8,8 +8,12 @@ export default function RoutineEditor({
   setActiveRoutineId,
   defaultRoutine,
   theme,
-  setTheme
+  setTheme,
+  deferredPrompt,
+  isStandalone
 }) {
+  const [showIOSModal, setShowIOSModal] = useState(false);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ subtasks: [] });
   const fileInputRef = useRef(null);
@@ -35,6 +39,23 @@ export default function RoutineEditor({
     const updated = customRoutine.map(t => t.id === editingId ? editForm : t);
     setCustomRoutine(updated.sort((a,b) => a.start.localeCompare(b.start)));
     setEditingId(null);
+  };
+
+  const handleInstallClick = () => {
+    if (isIOS) {
+      setShowIOSModal(true);
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+      });
+    } else {
+      alert("Installation is not supported on this browser, or it's already installed.");
+    }
   };
 
   const exportData = () => {
@@ -83,6 +104,22 @@ export default function RoutineEditor({
           <button style={{flex: 1}} className={`tab ${theme === 'dark' ? 'active' : ''}`} onClick={() => setTheme('dark')}>Dark Mode</button>
         </div>
       </div>
+
+      {!isStandalone && (
+        <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', background: 'var(--primary-glow)', borderColor: 'var(--primary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MonitorSmartphone size={20} /> Install App
+              </h3>
+              <p style={{ color: 'var(--text-main)', fontSize: '0.85rem', marginTop: '4px' }}>Add this tracker to your home screen.</p>
+            </div>
+            <button className="glass-button" style={{ padding: '8px 16px', background: 'var(--primary)', color: '#fff', border: 'none' }} onClick={handleInstallClick}>
+              Install
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
         <h3>Data Backup</h3>
@@ -211,6 +248,25 @@ export default function RoutineEditor({
           ))}
         </div>
       )}
+
+      {showIOSModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'flex-end' }}>
+          <div className="glass-panel animate-fade-in" style={{ width: '100%', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '32px 24px', background: 'var(--bg-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2>Install on iPhone</h2>
+              <button className="icon-button" onClick={() => setShowIOSModal(false)}><X size={24} /></button>
+            </div>
+            <p style={{ marginBottom: '16px', lineHeight: 1.5 }}>Apple does not support automated installs. To add this app to your Home Screen:</p>
+            <ol style={{ paddingLeft: '24px', lineHeight: 1.8, marginBottom: '24px' }}>
+              <li>Tap the <strong>Share</strong> icon at the bottom of Safari (the square with an arrow pointing up).</li>
+              <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+              <li>Tap <strong>Add</strong> in the top right corner.</li>
+            </ol>
+            <button className="glass-button" style={{ width: '100%', background: 'var(--primary)', color: '#fff', border: 'none' }} onClick={() => setShowIOSModal(false)}>Got it!</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

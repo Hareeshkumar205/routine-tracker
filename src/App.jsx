@@ -26,6 +26,12 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('app-theme') || 'light');
   const [streak, setStreak] = useState(0);
 
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(
+    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || false
+  );
+
   const isWeekend = checkIsWeekend(new Date());
   const notifiedEvents = useRef({});
 
@@ -66,6 +72,26 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('app-theme', theme);
   }, [theme]);
+
+  // PWA Event Listeners
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   const requestNotifications = () => {
     if (typeof Notification !== 'undefined') {
@@ -250,6 +276,8 @@ function App() {
             defaultRoutine={DEFAULT_ROUTINE}
             theme={theme}
             setTheme={setTheme}
+            deferredPrompt={deferredPrompt}
+            isStandalone={isStandalone}
           />
         )}
       </main>
