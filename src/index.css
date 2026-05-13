@@ -591,3 +591,50 @@ h1 {
   color: var(--text-muted);
   font-weight: 600;
 }
+
+/* Date Navigator */
+.date-navigator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+}
+
+.date-navigator h3 {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.date-navigator .icon-button {
+  background: transparent;
+  color: var(--text-main);
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.date-navigator .icon-button:hover {
+  color: var(--primary);
+}
+
+/* Scrollable Chart */
+.scrollable-chart {
+  overflow-x: auto;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.mini-bar {
+  flex: 0 0 20px;
+}
+.mini-bar .bar-bg {
+  width: 10px;
+}
+.mini-bar .bar-label {
+  font-size: 0.65rem;
+}
+
