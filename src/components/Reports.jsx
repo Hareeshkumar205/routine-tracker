@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { format, subDays, addDays, isWeekend as checkIsWeekend, isToday } from 'date-fns';
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { exportElementToPDF } from '../utils/pdfExport';
 
 export default function Reports({ currentRoutine }) {
   const [viewMode, setViewMode] = useState('weekly');
@@ -69,24 +68,8 @@ export default function Reports({ currentRoutine }) {
 
   const reportRef = useRef(null);
 
-  const downloadPDF = async () => {
-    if (!reportRef.current) return;
-    try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0f172a' : '#f8fafc',
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Routine_Report_${format(selectedDate, 'yyyy-MM-dd')}.pdf`);
-    } catch (error) {
-      console.error("Error generating PDF", error);
-      alert("Failed to generate PDF.");
-    }
+  const downloadPDF = () => {
+    exportElementToPDF(reportRef.current, `Routine_Report_${format(selectedDate, 'yyyy-MM-dd')}.pdf`);
   };
 
   return (

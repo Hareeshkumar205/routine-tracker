@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
+import { Download } from 'lucide-react';
+import { exportElementToPDF } from '../utils/pdfExport';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => {
   const start = i.toString().padStart(2, '0') + ':00';
@@ -9,6 +11,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
 
 export default function WeekendLog() {
   const [logs, setLogs] = useState({});
+  const logRef = useRef(null);
 
   useEffect(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -26,13 +29,18 @@ export default function WeekendLog() {
   };
 
   return (
-    <div className="weekend-log animate-fade-in">
-      <div className="weekend-header glass-panel">
-        <h2>Weekend Mode</h2>
-        <p>Your strict schedule is paused. Log your activities hourly below.</p>
+    <div className="weekend-container animate-fade-in" style={{ paddingBottom: '90px' }}>
+      <div className="weekend-header glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div>
+          <h2 style={{ margin: 0 }}>Weekend Freeform Log</h2>
+          <p>Log what you actually did each hour.</p>
+        </div>
+        <button className="icon-button" onClick={() => exportElementToPDF(logRef.current, `Weekend_Log_${format(new Date(), 'yyyy-MM-dd')}.pdf`)} title="Download PDF">
+          <Download size={24} color="var(--primary)" />
+        </button>
       </div>
       
-      <div className="routine-list">
+      <div ref={logRef} className="weekend-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-color)', padding: '16px', borderRadius: '24px' }}>
         {HOURS.map((hour, idx) => (
           <div key={hour.id} className="routine-card-container animate-fade-in" style={{ animationDelay: `${Math.min(idx * 0.05, 0.5)}s` }}>
             <div className="timeline-indicator">

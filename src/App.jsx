@@ -5,9 +5,10 @@ import Navigation from './components/Navigation';
 import WeekendLog from './components/WeekendLog';
 import Reports from './components/Reports';
 import RoutineEditor from './components/RoutineEditor';
-import { Activity, Bell, BellOff, Flame } from 'lucide-react';
+import { Activity, Bell, BellOff, Flame, Download } from 'lucide-react';
 import { format, isWeekend as checkIsWeekend, subDays } from 'date-fns';
 import { ROUTINE as DEFAULT_ROUTINE } from './data/routine';
+import { exportElementToPDF } from './utils/pdfExport';
 
 function App() {
   const [completions, setCompletions] = useState({});
@@ -41,6 +42,7 @@ function App() {
 
   const isWeekend = checkIsWeekend(new Date());
   const notifiedEvents = useRef({});
+  const scheduleRef = useRef(null);
 
   // Initialize from LocalStorage
   useEffect(() => {
@@ -269,18 +271,25 @@ function App() {
               </div>
               
               <div className="table-section animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                <div className="section-header">
-                  <h2 className="section-title">Schedule</h2>
-                  <span className="current-date">{format(new Date(), 'EEEE, MMMM d')}</span>
+                <div className="section-header" style={{ marginBottom: '16px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <h2 className="section-title">Schedule</h2>
+                    <span className="current-date" style={{ marginBottom: '2px' }}>{format(new Date(), 'EEEE, MMMM d')}</span>
+                  </div>
+                  <button className="icon-button" onClick={() => exportElementToPDF(scheduleRef.current, `Schedule_${format(new Date(), 'yyyy-MM-dd')}.pdf`)} title="Download Schedule">
+                    <Download size={24} color="var(--primary)" />
+                  </button>
                 </div>
-                <RoutineList 
-                  routineData={currentRoutine}
-                  completions={completions} 
-                  actualActivities={actualActivities}
-                  toggleCompletion={toggleCompletion} 
-                  updateActualActivity={updateActualActivity}
-                  currentTimeStr={currentTimeStr} 
-                />
+                <div ref={scheduleRef} style={{ background: 'var(--bg-color)', padding: '16px 8px', borderRadius: '16px' }}>
+                  <RoutineList 
+                    routineData={currentRoutine}
+                    completions={completions} 
+                    actualActivities={actualActivities}
+                    toggleCompletion={toggleCompletion} 
+                    updateActualActivity={updateActualActivity}
+                    currentTimeStr={currentTimeStr} 
+                  />
+                </div>
               </div>
             </>
           )
