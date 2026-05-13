@@ -307,6 +307,26 @@ h1 {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.task-inline-input {
+  flex: 1;
+  min-width: 150px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--glass-border);
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.task-inline-input:focus {
+  border-bottom-color: var(--primary);
+  color: var(--text-main);
 }
 
 .checkbox-wrapper {

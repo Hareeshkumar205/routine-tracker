@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 
-export default function RoutineList({ routineData, completions, actualActivities, toggleCompletion, updateActualActivity, currentTimeStr }) {
+export default function RoutineList({ routineData, completions, actualActivities, taskNotes, toggleCompletion, updateActualActivity, updateTaskNote, currentTimeStr }) {
   const listRef = useRef(null);
 
   const timeToMinutes = (timeStr) => {
@@ -61,7 +61,14 @@ export default function RoutineList({ routineData, completions, actualActivities
                     <div style={{ width: '26px', height: '26px', border: '2px solid var(--glass-border)', borderRadius: '50%' }}></div>
                   )}
                 </div>
-                <h3 className="card-title">{task.title}</h3>
+                <h3 className="card-title" style={{ flexShrink: 0 }}>{task.title}</h3>
+                <input 
+                  type="text"
+                  className="task-inline-input"
+                  placeholder="Task notes / details..."
+                  value={taskNotes?.[task.id] || ''}
+                  onChange={(e) => updateTaskNote(task.id, e.target.value)}
+                />
               </div>
 
               {(task.subtasks && task.subtasks.length > 0) && (

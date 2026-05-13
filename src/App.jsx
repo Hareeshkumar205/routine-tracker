@@ -13,6 +13,7 @@ import { exportElementToPDF } from './utils/pdfExport';
 function App() {
   const [completions, setCompletions] = useState({});
   const [actualActivities, setActualActivities] = useState({});
+  const [taskNotes, setTaskNotes] = useState({});
   const [currentTimeStr, setCurrentTimeStr] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
   const [notifPermission, setNotifPermission] = useState(
@@ -48,8 +49,13 @@ function App() {
   useEffect(() => {
     const savedActive = localStorage.getItem('active-routine-id');
     const savedCustom = localStorage.getItem('custom-routine');
+    const savedActual = localStorage.getItem('routine_actual_activities');
+    const savedNotes = localStorage.getItem('routine_task_notes');
+    
     if (savedActive) setActiveRoutineId(savedActive);
     if (savedCustom) setCustomRoutine(JSON.parse(savedCustom));
+    if (savedActual) setActualActivities(JSON.parse(savedActual));
+    if (savedNotes) setTaskNotes(JSON.parse(savedNotes));
     
     if (isWeekend) return;
     
@@ -111,7 +117,7 @@ function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', handleMediaChange);
+        mediaQuery.removeEventListener('change', mediaQuery.removeEventListener('change', handleMediaChange));
       }
     };
   }, []);
@@ -285,8 +291,10 @@ function App() {
                     routineData={currentRoutine}
                     completions={completions} 
                     actualActivities={actualActivities}
+                    taskNotes={taskNotes}
                     toggleCompletion={toggleCompletion} 
                     updateActualActivity={updateActualActivity}
+                    updateTaskNote={updateTaskNote}
                     currentTimeStr={currentTimeStr} 
                   />
                 </div>
