@@ -10,7 +10,7 @@ const formatTime = (timeStr) => {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 };
 
-export default function RoutineTable({ completions, toggleCompletion, currentTimeStr }) {
+export default function RoutineTable({ completions, actualActivities, toggleCompletion, updateActualActivity, currentTimeStr }) {
   
   // To highlight the current row
   const isCurrent = (start, end) => {
@@ -26,11 +26,9 @@ export default function RoutineTable({ completions, toggleCompletion, currentTim
     const s = toMins(start);
     const e = toMins(end);
     
-    // Handle overnight sleep (22:30 to 05:30)
     if (e < s) {
       return curr >= s || curr < e;
     }
-    
     return curr >= s && curr < e;
   };
 
@@ -50,6 +48,7 @@ export default function RoutineTable({ completions, toggleCompletion, currentTim
           {ROUTINE.map((item) => {
             const current = isCurrent(item.start, item.end);
             const completed = completions[item.id] || false;
+            const actualVal = actualActivities[item.id] || '';
             
             return (
               <tr key={item.id} className={`${current ? 'current-row' : ''} ${completed ? 'completed-row' : ''}`}>
@@ -57,7 +56,16 @@ export default function RoutineTable({ completions, toggleCompletion, currentTim
                   {completed ? <CheckCircle2 color="var(--primary)" size={20} /> : <Circle color="var(--glass-border)" size={20} />}
                 </td>
                 <td className="cell-time">{formatTime(item.start)} - {formatTime(item.end)}</td>
-                <td className="cell-activity">{item.title}</td>
+                <td className="cell-activity">
+                  <div className="activity-title">{item.title}</div>
+                  <input 
+                    type="text" 
+                    className="actual-activity-input" 
+                    placeholder="If different, what did you do?" 
+                    value={actualVal}
+                    onChange={(e) => updateActualActivity(item.id, e.target.value)}
+                  />
+                </td>
                 <td className="cell-category hidden-mobile"><span className="badge category-badge">{item.category}</span></td>
                 <td className="cell-mode hidden-mobile"><span className="badge mode-badge">{item.mode}</span></td>
               </tr>

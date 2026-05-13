@@ -6,26 +6,31 @@ import { format } from 'date-fns';
 
 function App() {
   const [completions, setCompletions] = useState({});
+  const [actualActivities, setActualActivities] = useState({});
   const [currentTimeStr, setCurrentTimeStr] = useState('');
 
-  // Load today's completions
+  // Load today's data
   useEffect(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
-    const saved = localStorage.getItem(`routine-logs-${today}`);
-    if (saved) {
-      try {
-        setCompletions(JSON.parse(saved));
-      } catch (e) {
-        setCompletions({});
-      }
+    const savedCompletions = localStorage.getItem(`routine-logs-${today}`);
+    const savedActuals = localStorage.getItem(`routine-actuals-${today}`);
+    
+    if (savedCompletions) {
+      try { setCompletions(JSON.parse(savedCompletions)); } catch (e) {}
+    }
+    if (savedActuals) {
+      try { setActualActivities(JSON.parse(savedActuals)); } catch (e) {}
     }
   }, []);
 
-  // Save completions and update current time
+  // Save data and update current time
   useEffect(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
     if (Object.keys(completions).length > 0) {
       localStorage.setItem(`routine-logs-${today}`, JSON.stringify(completions));
+    }
+    if (Object.keys(actualActivities).length > 0) {
+      localStorage.setItem(`routine-actuals-${today}`, JSON.stringify(actualActivities));
     }
 
     const updateTime = () => {
@@ -35,12 +40,19 @@ function App() {
     updateTime();
     const interval = setInterval(updateTime, 60000); // update every minute
     return () => clearInterval(interval);
-  }, [completions]);
+  }, [completions, actualActivities]);
 
   const toggleCompletion = (id) => {
     setCompletions(prev => ({
       ...prev,
       [id]: !prev[id]
+    }));
+  };
+
+  const updateActualActivity = (id, value) => {
+    setActualActivities(prev => ({
+      ...prev,
+      [id]: value
     }));
   };
 
@@ -65,7 +77,9 @@ function App() {
           </div>
           <RoutineTable 
             completions={completions} 
+            actualActivities={actualActivities}
             toggleCompletion={toggleCompletion} 
+            updateActualActivity={updateActualActivity}
             currentTimeStr={currentTimeStr} 
           />
         </div>
