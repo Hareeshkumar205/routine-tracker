@@ -85,20 +85,11 @@ export default function RoutineList({ routineData, completions, actualActivities
                 </div>
               )}
 
-              {(isPast && !isCompleted && !isCurrent) && (
+              {!isCompleted && (
                 <input 
                   type="text" 
                   className="actual-activity-input" 
                   placeholder="If different, what did you do?" 
-                  value={actualActivities[task.id] || ''}
-                  onChange={(e) => updateActualActivity(task.id, e.target.value)}
-                />
-              )}
-              {isCurrent && (
-                <input 
-                  type="text" 
-                  className="actual-activity-input" 
-                  placeholder="Note your progress..." 
                   value={actualActivities[task.id] || ''}
                   onChange={(e) => updateActualActivity(task.id, e.target.value)}
                 />
