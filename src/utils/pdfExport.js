@@ -26,14 +26,28 @@ export const exportElementToPDF = async (element, filename) => {
     });
     const imgData = canvas.toDataURL('image/png');
     
-    // Calculate aspect ratio to prevent clipping long lists
+    // Split into multiple standard A4 pages to prevent PDF viewers from zooming out excessively
     const pdfWidth = 210; // A4 width in mm
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
     
-    // Create a custom page size to fit the entire content on one page
-    const pdf = new jsPDF('p', 'mm', [pdfWidth, pdfHeight]);
+    const pdf = new jsPDF('p', 'mm', 'a4');
     
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // First page
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Subsequent pages
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+    
     pdf.save(filename);
   } catch (error) {
     console.error("Error generating PDF", error);
