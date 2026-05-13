@@ -27,10 +27,17 @@ function App() {
   const [streak, setStreak] = useState(0);
 
   // PWA Install State
+  const checkStandalone = () => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone ||
+      document.referrer.includes('android-app://') ||
+      false
+    );
+  };
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isStandalone, setIsStandalone] = useState(
-    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || false
-  );
+  const [isStandalone, setIsStandalone] = useState(checkStandalone());
 
   const isWeekend = checkIsWeekend(new Date());
   const notifiedEvents = useRef({});
@@ -87,9 +94,23 @@ function App() {
     };
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const handleMediaChange = (e) => {
+      setIsStandalone(e.matches || checkStandalone());
+    };
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    }
+
+    // Double check on mount
+    setIsStandalone(checkStandalone());
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      }
     };
   }, []);
 
