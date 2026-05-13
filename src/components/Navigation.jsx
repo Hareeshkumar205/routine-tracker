@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, BarChart2 } from 'lucide-react';
+import { Home, BarChart2, Settings } from 'lucide-react';
 
 export default function Navigation({ currentTab, setCurrentTab }) {
   return (
@@ -17,6 +17,13 @@ export default function Navigation({ currentTab, setCurrentTab }) {
       >
         <BarChart2 size={24} />
         <span>Reports</span>
+      </button>
+      <button 
+        className={`nav-item ${currentTab === 'settings' ? 'active' : ''}`}
+        onClick={() => setCurrentTab('settings')}
+      >
+        <Settings size={24} />
+        <span>Settings</span>
       </button>
     </div>
   );

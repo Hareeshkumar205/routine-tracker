@@ -4,9 +4,10 @@ import WorkTimer from './components/WorkTimer';
 import Navigation from './components/Navigation';
 import WeekendLog from './components/WeekendLog';
 import Reports from './components/Reports';
+import RoutineEditor from './components/RoutineEditor';
 import { Activity, Bell, BellOff } from 'lucide-react';
 import { format, isWeekend as checkIsWeekend } from 'date-fns';
-import { ROUTINE } from './data/routine';
+import { ROUTINE as DEFAULT_ROUTINE } from './data/routine';
 
 function App() {
   const [completions, setCompletions] = useState({});
@@ -16,23 +17,21 @@ function App() {
   const [notifPermission, setNotifPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
+  
+  // Custom Routine States
+  const [activeRoutineId, setActiveRoutineId] = useState('default');
+  const [customRoutine, setCustomRoutine] = useState([]);
 
   const isWeekend = checkIsWeekend(new Date());
   const notifiedEvents = useRef({});
 
-  const requestNotifications = () => {
-    if (typeof Notification !== 'undefined') {
-      Notification.requestPermission().then(permission => {
-        setNotifPermission(permission);
-        if (permission === 'granted') {
-          new Notification("Notifications Enabled", { body: "You will now receive alerts for your schedule." });
-        }
-      });
-    }
-  };
-
-  // Load today's data
+  // Initialize from LocalStorage
   useEffect(() => {
+    const savedActive = localStorage.getItem('active-routine-id');
+    const savedCustom = localStorage.getItem('custom-routine');
+    if (savedActive) setActiveRoutineId(savedActive);
+    if (savedCustom) setCustomRoutine(JSON.parse(savedCustom));
+    
     if (isWeekend) return;
     
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -46,6 +45,30 @@ function App() {
       try { setActualActivities(JSON.parse(savedActuals)); } catch (e) {}
     }
   }, [isWeekend]);
+
+  // Save Settings to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('active-routine-id', activeRoutineId);
+  }, [activeRoutineId]);
+
+  useEffect(() => {
+    if (customRoutine.length > 0 || activeRoutineId === 'custom') {
+      localStorage.setItem('custom-routine', JSON.stringify(customRoutine));
+    }
+  }, [customRoutine, activeRoutineId]);
+
+  const requestNotifications = () => {
+    if (typeof Notification !== 'undefined') {
+      Notification.requestPermission().then(permission => {
+        setNotifPermission(permission);
+        if (permission === 'granted') {
+          new Notification("Notifications Enabled", { body: "You will now receive alerts for your schedule." });
+        }
+      });
+    }
+  };
+
+  const currentRoutine = activeRoutineId === 'default' ? DEFAULT_ROUTINE : customRoutine;
 
   // Save data, update time, and fire notifications
   useEffect(() => {
@@ -72,7 +95,7 @@ function App() {
           notifiedEvents.current[todayKey] = [];
         }
         
-        ROUTINE.forEach(task => {
+        currentRoutine.forEach(task => {
           const startKey = `start-${task.id}`;
           const endKey = `end-${task.id}`;
           
@@ -92,7 +115,7 @@ function App() {
     updateTimeAndNotify();
     const interval = setInterval(updateTimeAndNotify, 60000);
     return () => clearInterval(interval);
-  }, [completions, actualActivities, isWeekend, notifPermission]);
+  }, [completions, actualActivities, isWeekend, notifPermission, currentRoutine]);
 
   const toggleCompletion = (id) => {
     setCompletions(prev => ({
@@ -140,6 +163,7 @@ function App() {
                   <span className="current-date">{format(new Date(), 'EEEE, MMMM d')}</span>
                 </div>
                 <RoutineList 
+                  routineData={currentRoutine}
                   completions={completions} 
                   actualActivities={actualActivities}
                   toggleCompletion={toggleCompletion} 
@@ -151,7 +175,17 @@ function App() {
           )
         )}
         
-        {currentTab === 'reports' && <Reports />}
+        {currentTab === 'reports' && <Reports currentRoutine={currentRoutine} />}
+        
+        {currentTab === 'settings' && (
+          <RoutineEditor 
+            customRoutine={customRoutine} 
+            setCustomRoutine={setCustomRoutine}
+            activeRoutineId={activeRoutineId}
+            setActiveRoutineId={setActiveRoutineId}
+            defaultRoutine={DEFAULT_ROUTINE}
+          />
+        )}
       </main>
 
       <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />

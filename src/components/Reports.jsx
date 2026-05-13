@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { format, subDays, addDays, isWeekend as checkIsWeekend, isToday } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { ROUTINE } from '../data/routine';
 
-export default function Reports() {
+export default function Reports({ currentRoutine }) {
   const [viewMode, setViewMode] = useState('weekly');
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  const totalTasks = ROUTINE.length;
+  const totalTasks = currentRoutine.length || 1;
 
   const getDayStat = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');

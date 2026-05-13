@@ -1,70 +1,87 @@
-import React from 'react';
-import { CheckCircle2, Circle } from 'lucide-react';
-import { ROUTINE } from '../data/routine';
+import React, { useEffect, useRef } from 'react';
+import { Check } from 'lucide-react';
 
-const formatTime = (timeStr) => {
-  const [h, m] = timeStr.split(':');
-  const d = new Date();
-  d.setHours(parseInt(h, 10));
-  d.setMinutes(parseInt(m, 10));
-  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-};
+export default function RoutineList({ routineData, completions, actualActivities, toggleCompletion, updateActualActivity, currentTimeStr }) {
+  const listRef = useRef(null);
 
-export default function RoutineList({ completions, actualActivities, toggleCompletion, updateActualActivity, currentTimeStr }) {
-  
-  const isCurrent = (start, end) => {
-    if (!currentTimeStr) return false;
-    const toMins = (ts) => {
-      const [h, m] = ts.split(':').map(Number);
-      return h * 60 + m;
-    };
-    const curr = toMins(currentTimeStr);
-    const s = toMins(start);
-    const e = toMins(end);
-    if (e < s) return curr >= s || curr < e;
-    return curr >= s && curr < e;
+  const timeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
   };
 
+  const currentMinutes = timeToMinutes(currentTimeStr || '00:00');
+
+  useEffect(() => {
+    if (listRef.current) {
+      const activeElement = listRef.current.querySelector('.current-card');
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [currentTimeStr]);
+
+  if (!routineData || routineData.length === 0) {
+    return <div className="glass-panel" style={{ padding: '24px', textAlign: 'center' }}><p>No tasks found in schedule.</p></div>;
+  }
+
   return (
-    <div className="routine-list">
-      {ROUTINE.map((item, index) => {
-        const current = isCurrent(item.start, item.end);
-        const completed = completions[item.id] || false;
-        const actualVal = actualActivities[item.id] || '';
-        
+    <div className="routine-list" ref={listRef}>
+      {routineData.map((task, index) => {
+        const startMins = timeToMinutes(task.start);
+        const endMins = timeToMinutes(task.end);
+        const isCurrent = currentMinutes >= startMins && currentMinutes < endMins;
+        const isCompleted = completions[task.id];
+        const isPast = currentMinutes >= endMins;
+
         return (
-          <div key={item.id} className={`routine-card-container animate-fade-in`} style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}>
-            
+          <div key={task.id} className={`routine-card-container animate-fade-in`} style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}>
             <div className="timeline-indicator">
-              <div className={`timeline-dot ${current ? 'current' : ''} ${completed ? 'completed' : ''}`}></div>
-              {index !== ROUTINE.length - 1 && <div className="timeline-line"></div>}
+              <div className={`timeline-dot ${isCurrent ? 'current' : ''} ${isCompleted ? 'completed' : ''}`}></div>
+              {index !== routineData.length - 1 && (
+                <div className="timeline-line"></div>
+              )}
             </div>
             
-            <div className={`routine-card glass-panel ${current ? 'current-card' : ''} ${completed ? 'completed-card' : ''}`}>
+            <div className={`routine-card glass-panel ${isCurrent ? 'current-card' : ''} ${isCompleted ? 'completed-card' : ''}`}>
               <div className="card-header">
-                <span className="card-time">{formatTime(item.start)} - {formatTime(item.end)}</span>
+                <span className="card-time">{task.start} - {task.end}</span>
                 <div className="card-badges">
-                  <span className="badge category-badge">{item.category}</span>
-                  <span className="badge mode-badge">{item.mode}</span>
+                  {task.category && <span className="badge category-badge">{task.category}</span>}
+                  {task.mode && <span className="badge mode-badge">{task.mode}</span>}
                 </div>
               </div>
               
-              <div className="card-body">
-                <div className="card-main-action">
-                  <div className="checkbox-wrapper" onClick={() => toggleCompletion(item.id)}>
-                    {completed ? <CheckCircle2 color="var(--primary)" size={28} /> : <Circle color="var(--glass-border)" size={28} />}
-                  </div>
-                  <h3 className="card-title">{item.title}</h3>
+              <div className="card-main-action">
+                <div className="checkbox-wrapper" onClick={() => toggleCompletion(task.id)}>
+                  {isCompleted ? (
+                    <div style={{ background: 'var(--success)', borderRadius: '50%', padding: '4px' }}>
+                      <Check size={18} color="#ffffff" />
+                    </div>
+                  ) : (
+                    <div style={{ width: '26px', height: '26px', border: '2px solid var(--glass-border)', borderRadius: '50%' }}></div>
+                  )}
                 </div>
-                
+                <h3 className="card-title">{task.title}</h3>
+              </div>
+
+              {(isPast && !isCompleted && !isCurrent) && (
                 <input 
                   type="text" 
                   className="actual-activity-input" 
                   placeholder="If different, what did you do?" 
-                  value={actualVal}
-                  onChange={(e) => updateActualActivity(item.id, e.target.value)}
+                  value={actualActivities[task.id] || ''}
+                  onChange={(e) => updateActualActivity(task.id, e.target.value)}
                 />
-              </div>
+              )}
+              {isCurrent && (
+                <input 
+                  type="text" 
+                  className="actual-activity-input" 
+                  placeholder="Note your progress..." 
+                  value={actualActivities[task.id] || ''}
+                  onChange={(e) => updateActualActivity(task.id, e.target.value)}
+                />
+              )}
             </div>
           </div>
         );

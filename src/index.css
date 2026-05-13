@@ -651,3 +651,18 @@ h1 {
   background: rgba(255, 255, 255, 0.9);
 }
 
+/* Settings Editor */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+}
+.editor-list {
+  display: flex;
+  flex-direction: column;
+}
+.editor-form {
+  display: flex;
+  flex-direction: column;
+}
+
+
