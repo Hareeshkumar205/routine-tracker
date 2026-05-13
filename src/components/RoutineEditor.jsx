@@ -125,7 +125,7 @@ export default function RoutineEditor({
         </div>
       ) : (
         <div className="editor-list">
-          <div style={{ display: 'flex', justify-content: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3>My Custom Schedule</h3>
             <button className="glass-button" style={{ padding: '8px 16px' }} onClick={handleAdd}>
               <Plus size={16} /> Add Task
