@@ -1,0 +1,70 @@
+import React from 'react';
+import { CheckCircle2, Circle } from 'lucide-react';
+import { ROUTINE } from '../data/routine';
+
+const formatTime = (timeStr) => {
+  const [h, m] = timeStr.split(':');
+  const d = new Date();
+  d.setHours(parseInt(h, 10));
+  d.setMinutes(parseInt(m, 10));
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+};
+
+export default function RoutineTable({ completions, toggleCompletion, currentTimeStr }) {
+  
+  // To highlight the current row
+  const isCurrent = (start, end) => {
+    if (!currentTimeStr) return false;
+    
+    // Convert to minutes from midnight
+    const toMins = (ts) => {
+      const [h, m] = ts.split(':').map(Number);
+      return h * 60 + m;
+    };
+    
+    const curr = toMins(currentTimeStr);
+    const s = toMins(start);
+    const e = toMins(end);
+    
+    // Handle overnight sleep (22:30 to 05:30)
+    if (e < s) {
+      return curr >= s || curr < e;
+    }
+    
+    return curr >= s && curr < e;
+  };
+
+  return (
+    <div className="routine-table-wrapper glass-panel">
+      <table className="routine-table">
+        <thead>
+          <tr>
+            <th className="cell-checkbox"></th>
+            <th>Time Slot</th>
+            <th>Activity</th>
+            <th className="hidden-mobile">Category</th>
+            <th className="hidden-mobile">Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ROUTINE.map((item) => {
+            const current = isCurrent(item.start, item.end);
+            const completed = completions[item.id] || false;
+            
+            return (
+              <tr key={item.id} className={`${current ? 'current-row' : ''} ${completed ? 'completed-row' : ''}`}>
+                <td className="cell-checkbox" onClick={() => toggleCompletion(item.id)}>
+                  {completed ? <CheckCircle2 color="var(--primary)" size={20} /> : <Circle color="var(--glass-border)" size={20} />}
+                </td>
+                <td className="cell-time">{formatTime(item.start)} - {formatTime(item.end)}</td>
+                <td className="cell-activity">{item.title}</td>
+                <td className="cell-category hidden-mobile"><span className="badge category-badge">{item.category}</span></td>
+                <td className="cell-mode hidden-mobile"><span className="badge mode-badge">{item.mode}</span></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
