@@ -4,9 +4,25 @@ import jsPDF from 'jspdf';
 export const exportElementToPDF = async (element, filename) => {
   if (!element) return;
   try {
+    // Force all animated elements to be fully visible and opaque for the snapshot
+    const animatedElements = element.querySelectorAll('.animate-fade-in');
+    animatedElements.forEach(el => {
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('animation', 'none', 'important');
+    });
+
     const canvas = await html2canvas(element, {
       scale: 2,
       backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0f172a' : '#f8fafc',
+      scrollY: -window.scrollY,
+      windowHeight: element.scrollHeight,
+      height: element.scrollHeight,
+    });
+
+    // Restore original styles
+    animatedElements.forEach(el => {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('animation');
     });
     const imgData = canvas.toDataURL('image/png');
     
