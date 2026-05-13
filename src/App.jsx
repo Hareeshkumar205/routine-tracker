@@ -1,19 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import RoutineList from './components/RoutineList';
 import WorkTimer from './components/WorkTimer';
 import Navigation from './components/Navigation';
 import WeekendLog from './components/WeekendLog';
 import Reports from './components/Reports';
-import { Activity } from 'lucide-react';
+import { Activity, Bell, BellOff } from 'lucide-react';
 import { format, isWeekend as checkIsWeekend } from 'date-fns';
+import { ROUTINE } from './data/routine';
 
 function App() {
   const [completions, setCompletions] = useState({});
   const [actualActivities, setActualActivities] = useState({});
   const [currentTimeStr, setCurrentTimeStr] = useState('');
   const [currentTab, setCurrentTab] = useState('home');
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
 
   const isWeekend = checkIsWeekend(new Date());
+  const notifiedEvents = useRef({});
+
+  const requestNotifications = () => {
+    if (typeof Notification !== 'undefined') {
+      Notification.requestPermission().then(permission => {
+        setNotifPermission(permission);
+        if (permission === 'granted') {
+          new Notification("Notifications Enabled", { body: "You will now receive alerts for your schedule." });
+        }
+      });
+    }
+  };
 
   // Load today's data
   useEffect(() => {
@@ -31,7 +47,7 @@ function App() {
     }
   }, [isWeekend]);
 
-  // Save data and update current time
+  // Save data, update time, and fire notifications
   useEffect(() => {
     if (!isWeekend) {
       const today = format(new Date(), 'yyyy-MM-dd');
@@ -43,14 +59,40 @@ function App() {
       }
     }
 
-    const updateTime = () => {
-      setCurrentTimeStr(format(new Date(), 'HH:mm'));
+    const updateTimeAndNotify = () => {
+      const now = new Date();
+      const currentStr = format(now, 'HH:mm');
+      const todayKey = format(now, 'yyyy-MM-dd');
+      
+      setCurrentTimeStr(currentStr);
+
+      // Notification Logic
+      if (notifPermission === 'granted' && !isWeekend) {
+        if (!notifiedEvents.current[todayKey]) {
+          notifiedEvents.current[todayKey] = [];
+        }
+        
+        ROUTINE.forEach(task => {
+          const startKey = `start-${task.id}`;
+          const endKey = `end-${task.id}`;
+          
+          if (currentStr === task.start && !notifiedEvents.current[todayKey].includes(startKey)) {
+            new Notification("Task Starting", { body: `It's time for: ${task.title}` });
+            notifiedEvents.current[todayKey].push(startKey);
+          }
+          
+          if (currentStr === task.end && !notifiedEvents.current[todayKey].includes(endKey)) {
+            new Notification("Task Completed", { body: `You finished: ${task.title}` });
+            notifiedEvents.current[todayKey].push(endKey);
+          }
+        });
+      }
     };
 
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
+    updateTimeAndNotify();
+    const interval = setInterval(updateTimeAndNotify, 60000);
     return () => clearInterval(interval);
-  }, [completions, actualActivities, isWeekend]);
+  }, [completions, actualActivities, isWeekend, notifPermission]);
 
   const toggleCompletion = (id) => {
     setCompletions(prev => ({
@@ -73,6 +115,13 @@ function App() {
           <Activity color="var(--primary)" size={28} />
           <h1>My Routine</h1>
         </div>
+        <button 
+          className="icon-button notification-toggle" 
+          onClick={requestNotifications}
+          title={notifPermission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
+        >
+          {notifPermission === 'granted' ? <Bell size={24} color="var(--primary)" /> : <BellOff size={24} color="var(--text-muted)" />}
+        </button>
       </header>
       
       <main className="main-content" style={{ paddingBottom: '90px' }}>
