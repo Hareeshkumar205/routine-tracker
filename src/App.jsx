@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import RoutineTable from './components/RoutineTable';
+import RoutineList from './components/RoutineList';
 import WorkTimer from './components/WorkTimer';
 import { Activity } from 'lucide-react';
 import { format } from 'date-fns';
@@ -38,7 +38,7 @@ function App() {
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 60000); // update every minute
+    const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
   }, [completions, actualActivities]);
 
@@ -75,7 +75,7 @@ function App() {
             <h2 className="section-title">Schedule</h2>
             <span className="current-date">{format(new Date(), 'EEEE, MMMM d')}</span>
           </div>
-          <RoutineTable 
+          <RoutineList 
             completions={completions} 
             actualActivities={actualActivities}
             toggleCompletion={toggleCompletion} 
