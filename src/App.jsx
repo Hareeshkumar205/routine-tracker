@@ -5,8 +5,8 @@ import Navigation from './components/Navigation';
 import WeekendLog from './components/WeekendLog';
 import Reports from './components/Reports';
 import RoutineEditor from './components/RoutineEditor';
-import { Activity, Bell, BellOff } from 'lucide-react';
-import { format, isWeekend as checkIsWeekend } from 'date-fns';
+import { Activity, Bell, BellOff, Flame } from 'lucide-react';
+import { format, isWeekend as checkIsWeekend, subDays } from 'date-fns';
 import { ROUTINE as DEFAULT_ROUTINE } from './data/routine';
 
 function App() {
@@ -21,6 +21,10 @@ function App() {
   // Custom Routine States
   const [activeRoutineId, setActiveRoutineId] = useState('default');
   const [customRoutine, setCustomRoutine] = useState([]);
+
+  // Theme & Gamification
+  const [theme, setTheme] = useState(localStorage.getItem('app-theme') || 'light');
+  const [streak, setStreak] = useState(0);
 
   const isWeekend = checkIsWeekend(new Date());
   const notifiedEvents = useRef({});
@@ -57,6 +61,12 @@ function App() {
     }
   }, [customRoutine, activeRoutineId]);
 
+  // Theme Effect
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
   const requestNotifications = () => {
     if (typeof Notification !== 'undefined') {
       Notification.requestPermission().then(permission => {
@@ -69,6 +79,53 @@ function App() {
   };
 
   const currentRoutine = activeRoutineId === 'default' ? DEFAULT_ROUTINE : customRoutine;
+
+  // Streak Calculation
+  useEffect(() => {
+    let currentStreak = 0;
+    const totalTasks = currentRoutine.length || 1;
+    
+    for (let i = 0; i < 365; i++) {
+      const d = subDays(new Date(), i);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      
+      if (checkIsWeekend(d)) {
+        const saved = localStorage.getItem(`weekend-logs-${dateStr}`);
+        let count = 0;
+        if (saved) {
+          try {
+             const parsed = JSON.parse(saved);
+             count = Object.values(parsed).filter(val => val.trim() !== '').length;
+          } catch(e) {}
+        }
+        // Assuming 10 hours is a successful weekend day
+        if (count >= 10) currentStreak++;
+        else if (i !== 0) break; // Break if missed a past day. If missed today, just don't increment.
+      } else {
+        const saved = localStorage.getItem(`routine-logs-${dateStr}`);
+        let completed = 0;
+        if (saved) {
+           try {
+             const parsed = JSON.parse(saved);
+             completed = Object.values(parsed).filter(val => val === true).length;
+           } catch(e) {}
+        }
+        
+        // If it's today and we haven't hit 80% yet, don't break the streak, just don't add to it.
+        // We only calculate based on the current in-memory completions if it's today.
+        if (i === 0 && !checkIsWeekend(new Date())) {
+            const todayCompleted = Object.values(completions).filter(val => val === true).length;
+            if ((todayCompleted / totalTasks) * 100 >= 80) currentStreak++;
+        } else {
+            const percentage = Math.round((completed / totalTasks) * 100);
+            if (percentage >= 80) currentStreak++;
+            else if (i !== 0) break;
+        }
+      }
+    }
+    setStreak(currentStreak);
+  }, [completions, currentRoutine]);
+
 
   // Save data, update time, and fire notifications
   useEffect(() => {
@@ -138,13 +195,20 @@ function App() {
           <Activity color="var(--primary)" size={28} />
           <h1>My Routine</h1>
         </div>
-        <button 
-          className="icon-button notification-toggle" 
-          onClick={requestNotifications}
-          title={notifPermission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
-        >
-          {notifPermission === 'granted' ? <Bell size={24} color="var(--primary)" /> : <BellOff size={24} color="var(--text-muted)" />}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {streak > 0 && (
+            <div className="streak-badge">
+              <Flame size={18} /> {streak}
+            </div>
+          )}
+          <button 
+            className="icon-button notification-toggle" 
+            onClick={requestNotifications}
+            title={notifPermission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
+          >
+            {notifPermission === 'granted' ? <Bell size={24} color="var(--primary)" /> : <BellOff size={24} color="var(--text-muted)" />}
+          </button>
+        </div>
       </header>
       
       <main className="main-content" style={{ paddingBottom: '90px' }}>
@@ -184,6 +248,8 @@ function App() {
             activeRoutineId={activeRoutineId}
             setActiveRoutineId={setActiveRoutineId}
             defaultRoutine={DEFAULT_ROUTINE}
+            theme={theme}
+            setTheme={setTheme}
           />
         )}
       </main>

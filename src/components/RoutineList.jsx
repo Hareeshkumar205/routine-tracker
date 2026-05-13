@@ -64,6 +64,27 @@ export default function RoutineList({ routineData, completions, actualActivities
                 <h3 className="card-title">{task.title}</h3>
               </div>
 
+              {(task.subtasks && task.subtasks.length > 0) && (
+                <div className="subtasks-list">
+                  {task.subtasks.map((sub, i) => {
+                    const subId = `${task.id}-sub-${i}`;
+                    const isSubCompleted = completions[subId];
+                    return (
+                      <div key={i} className={`subtask-item ${isSubCompleted ? 'checked' : ''}`} onClick={() => toggleCompletion(subId)}>
+                        <div className="checkbox-wrapper">
+                          {isSubCompleted ? (
+                            <div style={{ background: 'var(--success)', borderRadius: '50%', padding: '2px' }}><Check size={12} color="#ffffff" /></div>
+                          ) : (
+                            <div style={{ width: '16px', height: '16px', border: '2px solid var(--glass-border)', borderRadius: '50%' }}></div>
+                          )}
+                        </div>
+                        <span>{sub}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               {(isPast && !isCompleted && !isCurrent) && (
                 <input 
                   type="text" 
