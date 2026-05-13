@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { format, subDays, addDays, isWeekend as checkIsWeekend, isToday } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function Reports({ currentRoutine }) {
   const [viewMode, setViewMode] = useState('weekly');
@@ -65,17 +67,43 @@ export default function Reports({ currentRoutine }) {
     }
   };
 
+  const reportRef = useRef(null);
+
+  const downloadPDF = async () => {
+    if (!reportRef.current) return;
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0f172a' : '#f8fafc',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Routine_Report_${format(selectedDate, 'yyyy-MM-dd')}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF", error);
+      alert("Failed to generate PDF.");
+    }
+  };
+
   return (
     <div className="reports-container animate-fade-in">
       <div className="section-header" style={{ marginBottom: '16px' }}>
         <h2 className="section-title">Analytics</h2>
+        <button className="icon-button" onClick={downloadPDF} title="Download PDF">
+          <Download size={24} color="var(--primary)" />
+        </button>
       </div>
 
-      <div className="timer-tabs glass-panel" style={{ marginBottom: '24px', alignSelf: 'center', width: '100%', maxWidth: '400px', display: 'flex' }}>
-        <button style={{flex: 1}} className={`tab ${viewMode === 'daily' ? 'active' : ''}`} onClick={() => setViewMode('daily')}>Daily</button>
-        <button style={{flex: 1}} className={`tab ${viewMode === 'weekly' ? 'active' : ''}`} onClick={() => setViewMode('weekly')}>Weekly</button>
-        <button style={{flex: 1}} className={`tab ${viewMode === 'monthly' ? 'active' : ''}`} onClick={() => setViewMode('monthly')}>Monthly</button>
-      </div>
+      <div ref={reportRef} style={{ padding: '8px', background: 'var(--bg-color)', borderRadius: '16px' }}>
+        <div className="timer-tabs glass-panel" style={{ marginBottom: '24px', alignSelf: 'center', width: '100%', maxWidth: '400px', display: 'flex' }}>
+          <button style={{flex: 1}} className={`tab ${viewMode === 'daily' ? 'active' : ''}`} onClick={() => setViewMode('daily')}>Daily</button>
+          <button style={{flex: 1}} className={`tab ${viewMode === 'weekly' ? 'active' : ''}`} onClick={() => setViewMode('weekly')}>Weekly</button>
+          <button style={{flex: 1}} className={`tab ${viewMode === 'monthly' ? 'active' : ''}`} onClick={() => setViewMode('monthly')}>Monthly</button>
+        </div>
 
       {viewMode === 'daily' && (
         <div className="glass-panel report-card animate-fade-in">
@@ -160,6 +188,7 @@ export default function Reports({ currentRoutine }) {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }
