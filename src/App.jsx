@@ -11,6 +11,7 @@ import { ROUTINE as DEFAULT_ROUTINE } from './data/routine';
 import { exportElementToPDF } from './utils/pdfExport';
 
 function App() {
+  console.log("App.jsx: Rendering...");
   const [completions, setCompletions] = useState({});
   const [actualActivities, setActualActivities] = useState({});
   const [taskNotes, setTaskNotes] = useState({});
@@ -54,13 +55,16 @@ function App() {
     
     if (savedActive) setActiveRoutineId(savedActive);
     if (savedCustom) {
-      try { setCustomRoutine(JSON.parse(savedCustom)); } catch(e) {}
+      try { 
+        const parsed = JSON.parse(savedCustom);
+        if (Array.isArray(parsed)) setCustomRoutine(parsed);
+      } catch(e) {}
     }
     if (savedActual) {
-      try { setActualActivities(JSON.parse(savedActual)); } catch(e) {}
+      try { setActualActivities(JSON.parse(savedActual) || {}); } catch(e) {}
     }
     if (savedNotes) {
-      try { setTaskNotes(JSON.parse(savedNotes)); } catch(e) {}
+      try { setTaskNotes(JSON.parse(savedNotes) || {}); } catch(e) {}
     }
     
     if (isWeekend) return;
@@ -70,10 +74,10 @@ function App() {
     const savedActuals = localStorage.getItem(`routine-actuals-${today}`);
     
     if (savedCompletions) {
-      try { setCompletions(JSON.parse(savedCompletions)); } catch (e) {}
+      try { setCompletions(JSON.parse(savedCompletions) || {}); } catch (e) {}
     }
     if (savedActuals) {
-      try { setActualActivities(JSON.parse(savedActuals)); } catch (e) {}
+      try { setActualActivities(JSON.parse(savedActuals) || {}); } catch (e) {}
     }
   }, [isWeekend]);
 
@@ -139,7 +143,7 @@ function App() {
     }
   };
 
-  const currentRoutine = activeRoutineId === 'default' ? DEFAULT_ROUTINE : customRoutine;
+  const currentRoutine = (activeRoutineId === 'default' ? DEFAULT_ROUTINE : customRoutine) || [];
 
   // Streak Calculation
   useEffect(() => {
@@ -192,10 +196,10 @@ function App() {
   useEffect(() => {
     if (!isWeekend) {
       const today = format(new Date(), 'yyyy-MM-dd');
-      if (Object.keys(completions).length > 0) {
+      if (completions && Object.keys(completions).length > 0) {
         localStorage.setItem(`routine-logs-${today}`, JSON.stringify(completions));
       }
-      if (Object.keys(actualActivities).length > 0) {
+      if (actualActivities && Object.keys(actualActivities).length > 0) {
         localStorage.setItem(`routine-actuals-${today}`, JSON.stringify(actualActivities));
       }
     }
