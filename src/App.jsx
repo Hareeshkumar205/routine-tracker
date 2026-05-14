@@ -53,9 +53,15 @@ function App() {
     const savedNotes = localStorage.getItem('routine_task_notes');
     
     if (savedActive) setActiveRoutineId(savedActive);
-    if (savedCustom) setCustomRoutine(JSON.parse(savedCustom));
-    if (savedActual) setActualActivities(JSON.parse(savedActual));
-    if (savedNotes) setTaskNotes(JSON.parse(savedNotes));
+    if (savedCustom) {
+      try { setCustomRoutine(JSON.parse(savedCustom)); } catch(e) {}
+    }
+    if (savedActual) {
+      try { setActualActivities(JSON.parse(savedActual)); } catch(e) {}
+    }
+    if (savedNotes) {
+      try { setTaskNotes(JSON.parse(savedNotes)); } catch(e) {}
+    }
     
     if (isWeekend) return;
     
@@ -117,7 +123,7 @@ function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener('change', mediaQuery.removeEventListener('change', handleMediaChange));
+        mediaQuery.removeEventListener('change', handleMediaChange);
       }
     };
   }, []);
