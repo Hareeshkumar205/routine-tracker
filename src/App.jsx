@@ -202,6 +202,9 @@ function App() {
       if (actualActivities && Object.keys(actualActivities).length > 0) {
         localStorage.setItem(`routine-actuals-${today}`, JSON.stringify(actualActivities));
       }
+      if (taskNotes && Object.keys(taskNotes).length > 0) {
+        localStorage.setItem('routine_task_notes', JSON.stringify(taskNotes));
+      }
     }
 
     const updateTimeAndNotify = () => {
@@ -237,7 +240,7 @@ function App() {
     updateTimeAndNotify();
     const interval = setInterval(updateTimeAndNotify, 60000);
     return () => clearInterval(interval);
-  }, [completions, actualActivities, isWeekend, notifPermission, currentRoutine]);
+  }, [completions, actualActivities, taskNotes, isWeekend, notifPermission, currentRoutine]);
 
   const toggleCompletion = (id) => {
     setCompletions(prev => ({
@@ -248,6 +251,13 @@ function App() {
 
   const updateActualActivity = (id, value) => {
     setActualActivities(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const updateTaskNote = (id, value) => {
+    setTaskNotes(prev => ({
       ...prev,
       [id]: value
     }));
